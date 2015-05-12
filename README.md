@@ -8,12 +8,13 @@ Are there other solutions to this problem? Definitely. Are there better solution
 
 To build and run the module, simply type:
 
-   make
-   sudo insmod ./hb.ko
+    make
+
+    sudo insmod ./hb.ko
 
 To uninstall the module, run:
 
-   sudo rmmod hb
+    sudo rmmod hb
 
 ## License
 
