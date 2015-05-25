@@ -1,6 +1,13 @@
 #include <linux/module.h>    // Needed for all kernel modules
 #include <linux/kernel.h>    // KERN_INFO
 #include <linux/init.h>      //  __init and __exit macros
+#include <linux/slab.h>      // For kmalloc()
+
+// These are for networking from kernel-land
+#include <linux/net.h>
+#include <linux/tcp.h>
+#include <linux/socket.h>
+#include <net/sock.h>
 
 // These three are for scheduling timers and interrupts 
 #include <linux/interrupt.h>
@@ -8,6 +15,10 @@
 #include <linux/sched.h>
 
 #include <asm/uaccess.h>
+
+// Change these two when installing on a new system
+#define PORT 1234
+#define ADDR 127, 0, 0, 1
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Milo Trujillo");
@@ -19,7 +30,20 @@ static ktime_t kt_periode; // This is a counter used to prime the timer
 
 static enum hrtimer_restart timer_function(struct hrtimer * timer)
 {
+	int status = -1;
+	struct socket *sock= NULL;
+	struct sockaddr_in servaddr;
+
 	printk(KERN_INFO "Timer went off!\n");
+	status = sock_create(PF_INET, SOCK_STREAM, IPPROTO_TCP, &sock);
+
+	memset(&servaddr,0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_port = htons(PORT);
+	servaddr.sin_addr.s_addr = htonl(create_address(ADDR));
+
+	r = sock->ops->connect(sock, (struct sockaddr *) &servaddr,
+		sizeof(servaddr), O_RDWR);
 
 	hrtimer_forward_now(timer, kt_periode);
 	return HRTIMER_RESTART;
