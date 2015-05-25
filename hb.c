@@ -8,6 +8,7 @@
 #include <linux/tcp.h>
 #include <linux/socket.h>
 #include <net/sock.h>
+#include <net/tcp.h>
 
 // These three are for scheduling timers and interrupts 
 #include <linux/interrupt.h>
@@ -28,6 +29,18 @@ MODULE_DESCRIPTION("Heartbeat");
 static struct hrtimer htimer; // This is the timer
 static ktime_t kt_periode; // This is a counter used to prime the timer
 
+static uint32_t create_address(uint8_t i1, uint8_t i2, uint8_t i3, uint8_t i4)
+{
+	uint32_t addr = 0;
+
+	addr += i1, addr <<= 8;
+	addr += i2, addr <<= 8;
+	addr += i3, addr <<= 8;
+	addr += i4;
+
+	return (addr);
+}
+
 static enum hrtimer_restart timer_function(struct hrtimer * timer)
 {
 	int status = -1;
@@ -42,7 +55,7 @@ static enum hrtimer_restart timer_function(struct hrtimer * timer)
 	servaddr.sin_port = htons(PORT);
 	servaddr.sin_addr.s_addr = htonl(create_address(ADDR));
 
-	r = sock->ops->connect(sock, (struct sockaddr *) &servaddr,
+	status = sock->ops->connect(sock, (struct sockaddr *) &servaddr,
 		sizeof(servaddr), O_RDWR);
 
 	hrtimer_forward_now(timer, kt_periode);
